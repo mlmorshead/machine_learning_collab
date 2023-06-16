@@ -9,16 +9,22 @@ interact_list <- interact_list_raw %>%
   filter(CAS.RN %in% chemical_data$casrn, grepl('binds to', Interaction), !grepl('AHR protein binds to', Interaction))
 
 
-gene_num_chem <- as.data.frame(table(interact_list$Gene.Symbol, interact_list$Chemical.Name))
-gene_num_chem <- gene_num_chem %>%
+gene_num_pubs <- as.data.frame(table(interact_list$Gene.Symbol, interact_list$Chemical.Name))
+gene_num_pubs <- gene_num_pubs %>%
   filter(Freq!=0)
-colnames(gene_num_chem) <- c("Gene.Symbol", "chemical.name", "publications")
+colnames(gene_num_pubs) <- c("Gene.Symbol", "chemical.name", "publications")
 
-test <- as.data.frame(table(gene_num_chem$Gene.Symbol))
-colnames(test)<- c("Gene.Symbol", "freq")
-test2 <- test %>%
-  right_join(gene_num_chem, by="Gene.Symbol")%>%
-  group_by(Gene.Symbol)%>%
-  summarise(sum(publications))
+grouped_gene_num_pubs <- gene_num_pubs %>%
+  group_by(Gene.Symbol)
+
+sum_pubs <- grouped_gene_num_pubs %>% summarise(sum(publications))
+
+
+gene_num_chem <- as.data.frame(table(gene_num_chem$Gene.Symbol))
+colnames(gene_num_chem)<- c("Gene.Symbol", "num_chems")
+
+gene_chem_pubs <- sum_pubs %>%
+  inner_join(gene_num_chem, by ="Gene.Symbol")
+
 
 
